@@ -2,7 +2,7 @@ from flask import Blueprint,request,jsonify
 from werkzeug.security import check_password_hash,generate_password_hash
 import validators
 from src.database import User,database
-from flask_jwt_extended import create_access_token,create_refresh_token
+from flask_jwt_extended import jwt_required,create_access_token,create_refresh_token,get_jwt_identity
 auth = Blueprint("auth",__name__,url_prefix="/api/v1/auth")
 
 @auth.post("/register")
@@ -69,5 +69,17 @@ def user_login():
 
 
 @auth.get("/me")
+@jwt_required() # protected the route using the jwt token so that user cecn see the details if authorized
 def me():
-    return {"user":"JAMES"}
+    # import pdb
+    # pdb.set_trace()    used to pause a program and let us inspect some variables
+    user_id = get_jwt_identity()
+    user = User.query.filter_by(id=user_id).first()
+
+
+    return jsonify ({
+        'email':user.email,
+        'username':user.username,
+        
+
+    }),200
