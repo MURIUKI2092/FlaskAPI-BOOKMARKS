@@ -83,3 +83,15 @@ def me():
         
 
     }),200
+
+# refresh users token
+
+@auth.post('/token/refresh')
+@jwt_required(refresh=True)#set this to true
+def refresh_user_request():
+    identity=get_jwt_identity() #get user's identity
+    access=create_access_token(identity=identity) #create access token for the identity found
+
+    return jsonify({
+        'access':access# return the access generated
+    }),200
