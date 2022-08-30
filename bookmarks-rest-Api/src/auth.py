@@ -2,6 +2,7 @@ from flask import Blueprint,request,jsonify
 from werkzeug.security import check_password_hash,generate_password_hash
 import validators
 from src.database import User,database
+from flask_jwt_extended import create_access_token,create_refresh_token
 auth = Blueprint("auth",__name__,url_prefix="/api/v1/auth")
 
 @auth.post("/register")
@@ -41,6 +42,31 @@ def register():
         }
     }),201
     return "user registered"
+
+#deal with the user login logic
+@auth.post("/login")
+def user_login():
+    email=request.json.get('email','') #obtain users email
+    password=request.json.get('password','') #obtain users password
+
+    user=User.query.filter_by(email=email).first() #check the user using the email in the database
+    if user: #if the user is found
+        is_password_correct=check_password_hash(user.password,password) #check the password if it's matching with the hashed db password
+
+        if is_password_correct:
+            refresh=create_refresh_token(identity=user.id)
+            access = create_access_token(identity=user.id)
+
+            return jsonify({
+                'user':{
+                    'refresh':refresh,
+                    'access':access,
+                    'username':user.username,
+                    'email':user.email
+                }
+            }),201
+    return jsonify({"error":"Wrong credentials"}),401
+
 
 @auth.get("/me")
 def me():
