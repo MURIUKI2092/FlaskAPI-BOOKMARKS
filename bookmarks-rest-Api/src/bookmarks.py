@@ -77,4 +77,25 @@ def handle_bookmarks(): #bookmark function
             }
         return jsonify({'data':data,'meta':meta}),200 #return the data
 
+#get a single bookmark from the  db
+@bookmarks.get("/<int:id>")
+@jwt_required()#protect the rout
+def get_single_bookmark(id):
+    #get current user
+    current_user = get_jwt_identity()
+    single_bookmark = Bookmark.query.filter_by(user_id=current_user,id=id).first()
+    if not single_bookmark:
+        return jsonify({
+            "message":"Item not found"
+        }),404
+    return jsonify({
+        'id':single_bookmark.id,
+            'url':single_bookmark.url,
+            'short_url':single_bookmark.short_url,
+            'visit':single_bookmark.visits,
+            'body':single_bookmark.body,
+            'created_at':single_bookmark.created_at,
+            'updated_at':single_bookmark.updated_at
+    }),200
+    
 
