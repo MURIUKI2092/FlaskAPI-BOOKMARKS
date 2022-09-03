@@ -46,9 +46,13 @@ def handle_bookmarks(): #bookmark function
         
     else:
         #if method is get
-        bookmarks=Bookmark.query.filter_by(user_id=current_user) #get the item you want to get using the id
+        page = request.args.get('page',1,type=int) #pagination flask
+        per_page= request.args.get('per_page',5, type=int)
+        bookmarks=Bookmark.query.filter_by(user_id=current_user).paginate(page=page,per_page=per_page) 
+        #get the item you want to get using the id
+        
         data =[]
-        for item in bookmarks: #loop through the item and return an object
+        for bookmark in bookmarks.items: #loop through the item and return an object
             data.append({
                 'id':bookmark.id,
             'url':bookmark.url,
@@ -59,6 +63,16 @@ def handle_bookmarks(): #bookmark function
             'updated_at':bookmark.updated_at
                 
             })
-        return jsonify({'data':data}),200 #return the data
+            meta={
+                "page":bookmarks.page,
+                'pages':bookmarks.pages,
+                'total_count':bookmarks.total,
+                'prev':bookmarks.prev_num,
+                'next_page':bookmarks.next_num,
+                'has_next':bookmarks.has_next,
+                'has_prev':bookmarks.has_prev,
+                
+            }
+        return jsonify({'data':data,'meta':meta}),200 #return the data
 
 
