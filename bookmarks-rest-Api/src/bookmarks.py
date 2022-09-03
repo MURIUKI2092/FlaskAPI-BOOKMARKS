@@ -46,6 +46,7 @@ def handle_bookmarks(): #bookmark function
         
     else:
         #if method is get
+        #set the pagination configuration
         page = request.args.get('page',1,type=int) #pagination flask
         per_page= request.args.get('per_page',5, type=int)
         bookmarks=Bookmark.query.filter_by(user_id=current_user).paginate(page=page,per_page=per_page) 
@@ -63,6 +64,7 @@ def handle_bookmarks(): #bookmark function
             'updated_at':bookmark.updated_at
                 
             })
+            #overwrite the paginate
             meta={
                 "page":bookmarks.page,
                 'pages':bookmarks.pages,
