@@ -158,3 +158,29 @@ def delete_single_bookmark(id):
         return jsonify({
             "message":"an error ocurred"
         })
+
+#obtain users statistics
+@bookmarks.get("/stats") #the route to get the stats
+@jwt_required()
+def get_user_stats(): #function to obtain the route
+    try:
+        current_user = get_jwt_identity()
+        data=[]
+        items = Bookmark.query.filter_by(current_user=current_user).all() #get all items the urrent user has 
+        for item in items: #loop through the items
+            new_link ={ #create an object to hold the required data to be sent bak
+                "visits":item.visits,
+                "url":item.url,
+                "id":item.id,
+                "short_url":item.short_url
+            }
+            data.append(new_link) #append it to the data array
+            
+        return jsonify({
+            "data":data
+        }),200
+    except:
+        return jsonify({
+            "message":"an error has ocurred"
+        })       
+    
