@@ -39,6 +39,15 @@ def create_app(test_config =None):
                 "message":"An error occcured"
             })
         
-        
+    @app.errorhandler(404) # handle not found error
+    def handle_Error_404(e):
+        return jsonify({"error":"Not found"}),404 #return this  message
+    
+    @app.errorhandler(500) #server Errors
+    def handle_server_error(e):
+        return jsonify({
+            "error":"something went wrong,working on it"
+        }),500
+       
         
     return app
