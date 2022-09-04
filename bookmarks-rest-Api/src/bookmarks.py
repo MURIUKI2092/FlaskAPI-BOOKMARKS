@@ -1,3 +1,4 @@
+import json
 from flask import Blueprint,request
 import validators
 from flask.json import jsonify
@@ -83,12 +84,12 @@ def handle_bookmarks(): #bookmark function
 def get_single_bookmark(id):
     #get current user
     current_user = get_jwt_identity()
-    single_bookmark = Bookmark.query.filter_by(user_id=current_user,id=id).first()
-    if not single_bookmark:
+    single_bookmark = Bookmark.query.filter_by(user_id=current_user,id=id).first() #send a query to the db to get the single page
+    if not single_bookmark: # if not found then return the message
         return jsonify({
             "message":"Item not found"
         }),404
-    return jsonify({
+    return jsonify({ # if found return a json object
         'id':single_bookmark.id,
             'url':single_bookmark.url,
             'short_url':single_bookmark.short_url,
@@ -97,5 +98,43 @@ def get_single_bookmark(id):
             'created_at':single_bookmark.created_at,
             'updated_at':single_bookmark.updated_at
     }),200
+#update a single item in the database   
+@bookmarks.put("/<int:id>")
+@bookmarks.patch("/<int:id>") #handles both patch and put updates
+@jwt_required() #protect the route
+def update_single_bookmark(id):
+    current_user =get_jwt_identity()# get the current user
+    try:
+        single_bookmark = Bookmark.query.filter_by(user_id=current_user,id=id).first()#look for a single bookmark in the database
+        if not single_bookmark:
+            return jsonify({
+                "message":"Item not found" #if there is no bookmark found return this
+            }),404
+        body= request.get_json().get("body","") # if a single bookmark exist get the body
+        url=request.get_json().get("url","")#get a url also from the single bookmark
+        
+        if not validators.url(url): #validate the url to ensure it's valid
+            return jsonify({
+                "error":"Enter a valid url"
+            }),400
+            
+        single_bookmark.url=url
+        single_bookmark.body=body
+        database.session.commit()
+        return jsonify({
+            'id':single_bookmark.id,
+            'url':single_bookmark.url,
+            'short_url':single_bookmark.short_url,
+            'visit':single_bookmark.visits,
+            'body':single_bookmark.body,
+            'created_at':single_bookmark.created_at,
+            'updated_at':single_bookmark.updated_at
+        }),200
+        
+        
+    except:
+        return jsonify({
+            "message":"There was an error "
+        })
     
-
+    
