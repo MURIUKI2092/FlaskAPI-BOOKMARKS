@@ -137,4 +137,24 @@ def update_single_bookmark(id):
             "message":"There was an error "
         })
     
+#deleting an item
+@bookmarks.delete("/<int:id>") #The route for deletion
+@jwt_required()#secure routes
+def delete_single_bookmark(id):
+    try:
+        current_user=get_jwt_identity() #check who the user is 
     
+        single_bookmark = Bookmark.query.filter_by(user_id=current_user,id=id).first() #chek if the user created it
+        if not single_bookmark:
+            return jsonify({
+                "message":"item not found"
+            }),404
+        database.session.delete(single_bookmark)
+        database.session.commit()
+        
+        return jsonify({}),204
+        
+    except:
+        return jsonify({
+            "message":"an error ocurred"
+        })
