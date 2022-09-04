@@ -1,8 +1,8 @@
-from flask import Flask,jsonify # import flask and jsonify
+from flask import Flask,jsonify,redirect # import flask and jsonify
 import os #import os to use the dot env key
 from src.auth import auth
 from src.bookmarks import bookmarks
-from src.database import database
+from src.database import database,Bookmark
 from flask_jwt_extended import JWTManager
 
 
@@ -24,4 +24,21 @@ def create_app(test_config =None):
     app.register_blueprint(auth) # register auth blueprint
     app.register_blueprint(bookmarks) #register bookmarks blueprint
 
+ #redirect a page after being given a short url to the url       
+    @app.get("/<short_url>")
+    def redirect_to_url(short_url):
+        try:
+            single_bookmark = Bookmark.query.filter_by(short_url=short_url).first_or_404() #get the single bookmark using the url given
+            if single_bookmark: # if it exist
+                single_bookmark.visits=single_bookmark.visit+1 #then add visits to +1
+                database.session.commit() #save it to the database
+                return redirect(single_bookmark.url) # return a redirect to the url for the single_bookmark
+            
+        except:
+            return jsonify({
+                "message":"An error occcured"
+            })
+        
+        
+        
     return app
